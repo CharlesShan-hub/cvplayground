@@ -8,20 +8,16 @@ from torch.utils.data import DataLoader, random_split
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 from transform import transform
-from model import LeNet
+from model import AlexNet
 from config import TrainOptions
 from clib.train import BaseTrainer
 
 
-class LeNetTrainer(BaseTrainer):
+class AlexNetTrainer(BaseTrainer):
     def __init__(self, opts):
         super().__init__(opts)
 
-        self.model = LeNet(
-            num_classes=opts.num_classes,
-            use_max_pool=opts.use_max_pool,
-            use_relu=opts.use_relu,
-        )
+        self.model = AlexNet(num_classes=opts.num_classes)
 
         self.criterion = nn.CrossEntropyLoss()
 
@@ -41,10 +37,10 @@ class LeNetTrainer(BaseTrainer):
 
         self.transform = transform(self.opts.image_size)
 
-        train_dataset = datasets.MNIST(
+        train_dataset = datasets.CIFAR10(
             root=opts.dataset_path, train=True, download=True, transform=self.transform
         )
-        test_dataset = datasets.MNIST(
+        test_dataset = datasets.CIFAR10(
             root=opts.dataset_path, train=False, download=True, transform=self.transform
         )
         val_size = int(opts.val * len(train_dataset))
@@ -190,10 +186,8 @@ class LeNetTrainer(BaseTrainer):
 @click.option("--comment", type=str, default="", show_default=False)
 @click.option("--model_base_path", type=click.Path(exists=True), required=True)
 @click.option("--dataset_path", type=click.Path(exists=True), required=True)
-@click.option("--image_size", type=int, default=28, show_default=True)
+@click.option("--image_size", type=int, default=224, show_default=True)
 @click.option("--num_classes", type=int, default=10, show_default=True)
-@click.option("--use_relu", type=bool, default=False, show_default=True)
-@click.option("--use_max_pool", type=bool, default=False, show_default=True)
 @click.option("--seed", type=int, default=42, show_default=True, required=False)
 @click.option("--batch_size", type=int, default=8, show_default=True, required=False)
 @click.option("--lr", type=float, default=0.03, show_default=True, required=False)
@@ -204,7 +198,7 @@ class LeNetTrainer(BaseTrainer):
 @click.option("--val", type=float, default=0.2, show_default=True, required=False)
 def train(**kwargs):
     opts = TrainOptions().parse(kwargs)
-    trainer = LeNetTrainer(opts)
+    trainer = AlexNetTrainer(opts)
     trainer.train()
 
 

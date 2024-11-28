@@ -41,6 +41,16 @@
 2. 目标检测
 3. 语义分割
 
+* AI 都有什么
+  * https://medium.com/@fraidoonomarzai99/introduction-to-computer-vision-cv-in-depth-81a9ffc1b9f1
+  * https://en.wikipedia.org/wiki/Computer_vision
+  * https://zh.d2l.ai/index.html
+  * https://paperswithcode.com/area/computer-vision
+  * https://blog.csdn.net/lovetaozibaby/article/details/89451590
+  * https://sota.jiqizhixin.com/
+  * 各种 GAN：https://github.com/eriklindernoren/PyTorch-GAN
+  * https://meetonfriday.com/tags/#paper
+
 
 1. “这篇论文的研究目的是什么？它是如何与现有的研究相结合的？”
 

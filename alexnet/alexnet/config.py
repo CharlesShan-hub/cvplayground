@@ -4,7 +4,7 @@ from clib.utils import Options
 
 class TrainOptions(Options):
     def __init__(self):
-        super().__init__("LeNet")
+        super().__init__("AlexNet")
         self.update(
             {
                 # Utils
@@ -14,10 +14,8 @@ class TrainOptions(Options):
                 "dataset_path": "path/to/dataset",
 
                 # Model Option
-                "image_size": 28,
+                "image_size": 224,
                 "num_classes": 10,
-                "use_relu": False,
-                "use_max_pool": False,
 
                 # Train Config
                 "seed": 42,
@@ -87,10 +85,8 @@ class TestOptions(Options):
                 "dataset_path": "path/to/dataset",
 
                 # Model Option
-                "image_size": 28,
+                "image_size": 224,
                 "num_classes": 10,
-                "use_relu": False,
-                "use_max_pool": False,
 
                 # Test Config
                 "batch_size": 32,

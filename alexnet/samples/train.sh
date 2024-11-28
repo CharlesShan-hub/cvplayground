@@ -12,19 +12,17 @@ fi
 
 # Run Script
 
-PYTHON_SCRIPT="../lenet/train.py"
-RES_PATH="${BASE_PATH}/model/lenet/mnist"
+PYTHON_SCRIPT="../alexnet/train.py"
+RES_PATH="${BASE_PATH}/model/alexnet/cifra10"
 NAME=$(date +'%Y_%m_%d_%H_%M')
 mkdir -p "${RES_PATH}/${NAME}"
 
 python $PYTHON_SCRIPT \
-    --comment "LeNet on MNIST with ReduceLROnPlateau on SGD" \
+    --comment "AlexNet on CIFAR10 with ReduceLROnPlateau on SGD" \
     --model_base_path "${RES_PATH}/${NAME}" \
     --dataset_path "${BASE_PATH}/torchvision" \
-    --image_size 28 \
+    --image_size 224 \
     --num_classes 10 \
-    --use_relu False \
-    --use_max_pool False \
     --seed 32 \
     --batch_size 16 \
     --lr 0.3 \
