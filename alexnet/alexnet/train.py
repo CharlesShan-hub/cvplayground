@@ -37,10 +37,10 @@ class AlexNetTrainer(BaseTrainer):
 
         self.transform = transform(self.opts.image_size)
 
-        train_dataset = datasets.CIFAR10(
+        train_dataset = datasets.MNIST(
             root=opts.dataset_path, train=True, download=True, transform=self.transform
         )
-        test_dataset = datasets.CIFAR10(
+        test_dataset = datasets.MNIST(
             root=opts.dataset_path, train=False, download=True, transform=self.transform
         )
         val_size = int(opts.val * len(train_dataset))

@@ -12,15 +12,13 @@ fi
 
 # Run Script
 
-PYTHON_SCRIPT="../lenet/test.py"
-RES_PATH="${BASE_PATH}/model/lenet/mnist"
+PYTHON_SCRIPT="../alexnet/test.py"
+RES_PATH="${BASE_PATH}/model/alexnet/mnist"
 
 python $PYTHON_SCRIPT \
-    --comment "LeNET on MNNIST" \
-    --model_path "${RES_PATH}/9865/checkpoints/15.pt" \
+    --comment "AlexNet on MNIST" \
+    --model_path "${RES_PATH}/2024_12_03_19_01/checkpoints/19.pt" \
     --dataset_path "${BASE_PATH}/torchvision"\
-    --image_size 28 \
+    --image_size 224 \
     --num_classes 10 \
-    --use_relu False \
-    --use_max_pool False \
     --batch_size 32
