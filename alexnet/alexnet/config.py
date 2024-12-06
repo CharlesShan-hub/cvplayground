@@ -75,7 +75,7 @@ class TrainOptions(Options):
 
 class TestOptions(Options):
     def __init__(self):
-        super().__init__("LeNet")
+        super().__init__("AlexNet")
         self.update(
             {
                 # Utils

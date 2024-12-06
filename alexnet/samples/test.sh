@@ -17,7 +17,7 @@ RES_PATH="${BASE_PATH}/model/alexnet/mnist"
 
 python $PYTHON_SCRIPT \
     --comment "AlexNet on MNIST" \
-    --model_path "${RES_PATH}/2024_12_03_19_01/checkpoints/19.pt" \
+    --model_path "${RES_PATH}/9957/checkpoints/19.pt" \
     --dataset_path "${BASE_PATH}/torchvision"\
     --image_size 224 \
     --num_classes 10 \
