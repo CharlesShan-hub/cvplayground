@@ -2,11 +2,8 @@ import torch
 import json
 import os
 import config
-import matplotlib.patches as patches
 import torchvision.transforms as T
-from PIL import ImageDraw, ImageFont
-from matplotlib import pyplot as plt
-
+from PIL import ImageDraw
 
 def get_iou(p, a):
     p_tl, p_br = bbox_to_coords(p)          # (batch, S, S, B, 2)
@@ -65,43 +62,16 @@ def scheduler_lambda(epoch):
     elif epoch < config.WARMUP_EPOCHS + 105:
         return 0.1
     else:
-        return 0.01
-
-
-def load_class_dict():
-    if os.path.exists(config.CLASSES_PATH):
-        with open(config.CLASSES_PATH, 'r') as file:
-            return json.load(file)
-    new_dict = {}
-    save_class_dict(new_dict)
-    return new_dict
-
-
-def load_class_array():
-    classes = load_class_dict()
-    result = [None for _ in range(len(classes))]
-    for c, i in classes.items():
-        result[i] = c
-    return result
-
-
-def save_class_dict(obj):
-    folder = os.path.dirname(config.CLASSES_PATH)
-    if not os.path.exists(folder):
-        os.makedirs(folder)
-    with open(config.CLASSES_PATH, 'w') as file:
-        json.dump(obj, file, indent=2)
-
+        return 0.0
 
 def get_dimensions(label):
     size = label['annotation']['size']
     return int(size['width']), int(size['height'])
 
-
-def get_bounding_boxes(label):
+def get_bounding_boxes(label,IMAGE_SIZE):
     width, height = get_dimensions(label)
-    x_scale = config.IMAGE_SIZE[0] / width
-    y_scale = config.IMAGE_SIZE[1] / height
+    x_scale = IMAGE_SIZE[0] / width
+    y_scale = IMAGE_SIZE[1] / height
     boxes = []
     objects = label['annotation']['object']
     for obj in objects:
@@ -216,7 +186,8 @@ def plot_boxes(data, labels, classes, color='orange', min_confidence=0.2, max_ov
             # Annotate image
             draw.rectangle((tl, (tl[0] + width, tl[1] + height)), outline='orange')
             text_pos = (max(0, tl[0]), max(0, tl[1] - 11))
-            text = f'{classes[class_index]} {round(confidence * 100, 1)}%'
+            text = f'{classes.get(class_index)} {round(confidence * 100, 1)}%'
+            
             text_bbox = draw.textbbox(text_pos, text)
             draw.rectangle(text_bbox, fill='orange')
             draw.text(text_pos, text)
