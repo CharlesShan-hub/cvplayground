@@ -1,16 +1,14 @@
 import torch
-import json
 import os
-import config
 import torchvision.transforms as T
 from PIL import ImageDraw
 
-def get_iou(p, a):
+def get_iou(p, a, B, EPSILON=1E-6):
     p_tl, p_br = bbox_to_coords(p)          # (batch, S, S, B, 2)
     a_tl, a_br = bbox_to_coords(a)
 
     # Largest top-left corner and smallest bottom-right corner give the intersection
-    coords_join_size = (-1, -1, -1, config.B, config.B, 2)
+    coords_join_size = (-1, -1, -1, B, B, 2)
     tl = torch.max(
         p_tl.unsqueeze(4).expand(coords_join_size),         # (batch, S, S, B, 1, 2) -> (batch, S, S, B, B, 2)
         a_tl.unsqueeze(3).expand(coords_join_size)          # (batch, S, S, 1, B, 2) -> (batch, S, S, B, B, 2)
@@ -34,7 +32,7 @@ def get_iou(p, a):
 
     # Catch division-by-zero
     zero_unions = (union == 0.0)
-    union[zero_unions] = config.EPSILON
+    union[zero_unions] = EPSILON
     intersection[zero_unions] = 0.0
 
     return intersection / union
@@ -56,41 +54,38 @@ def bbox_to_coords(t):
     return torch.stack((x1, y1), dim=4), torch.stack((x2, y2), dim=4)
 
 
-def scheduler_lambda(epoch):
-    if epoch < config.WARMUP_EPOCHS + 75:
-        return 1
-    elif epoch < config.WARMUP_EPOCHS + 105:
-        return 0.1
-    else:
-        return 0.0
+# def scheduler_lambda(epoch):
+#     if epoch < config.WARMUP_EPOCHS + 75:
+#         return 1
+#     elif epoch < config.WARMUP_EPOCHS + 105:
+#         return 0.1
+#     else:
+#         return 0.0
 
 def get_dimensions(label):
     size = label['annotation']['size']
     return int(size['width']), int(size['height'])
 
-def get_bounding_boxes(label,IMAGE_SIZE):
-    width, height = get_dimensions(label)
-    x_scale = IMAGE_SIZE[0] / width
-    y_scale = IMAGE_SIZE[1] / height
+def get_bounding_boxes(label):
     boxes = []
-    objects = label['annotation']['object']
-    for obj in objects:
+    for obj in label['annotation']['object']:
         box = obj['bndbox']
         coords = (
-            int(int(box['xmin']) * x_scale),
-            int(int(box['xmax']) * x_scale),
-            int(int(box['ymin']) * y_scale),
-            int(int(box['ymax']) * y_scale)
+            int(box['xmin']),
+            int(box['xmax']),
+            int(box['ymin']),
+            int(box['ymax'])
         )
         name = obj['name']
         boxes.append((name, coords))
+    
     return boxes
 
 
-def bbox_attr(data, i):
+def bbox_attr(data, i, C):
     """Returns the Ith attribute of each bounding box in data."""
 
-    attr_start = config.C + i
+    attr_start = C + i
     return data[..., attr_start::5]
 
 
@@ -98,7 +93,7 @@ def scale_bbox_coord(coord, center, scale):
     return ((coord - center) * scale) + center
 
 
-def get_overlap(a, b):
+def get_overlap(a, b, EPSILON=1E-6):
     """Returns proportion overlap between two boxes in the form (tl, width, height, confidence, class)."""
 
     a_tl, a_width, a_height, _, _ = a
@@ -122,10 +117,10 @@ def get_overlap(a, b):
     a_intersection = b_intersection = intersection
     if a_area == 0:
         a_intersection = 0
-        a_area = config.EPSILON
+        a_area = EPSILON
     if b_area == 0:
         b_intersection = 0
-        b_area = config.EPSILON
+        b_area = EPSILON
 
     return torch.max(
         a_intersection / a_area,
@@ -133,29 +128,31 @@ def get_overlap(a, b):
     ).item()
 
 
-def plot_boxes(data, labels, classes, color='orange', min_confidence=0.2, max_overlap=0.5, file=None):
+def plot_boxes(
+        data, labels, classes, S,C,IMAGE_SIZE,color='orange', min_confidence=0.2, max_overlap=0.5, file=None
+    ):
     """Plots bounding boxes on the given image."""
 
-    grid_size_x = data.size(dim=2) / config.S
-    grid_size_y = data.size(dim=1) / config.S
+    grid_size_x = data.size(dim=2) / S
+    grid_size_y = data.size(dim=1) / S
     m = labels.size(dim=0)
     n = labels.size(dim=1)
 
     bboxes = []
     for i in range(m):
         for j in range(n):
-            for k in range((labels.size(dim=2) - config.C) // 5):
-                bbox_start = 5 * k + config.C
-                bbox_end = 5 * (k + 1) + config.C
+            for k in range((labels.size(dim=2) - C) // 5):
+                bbox_start = 5 * k + C
+                bbox_end = 5 * (k + 1) + C
                 bbox = labels[i, j, bbox_start:bbox_end]
-                class_index = torch.argmax(labels[i, j, :config.C]).item()
+                class_index = torch.argmax(labels[i, j, :C]).item()
                 confidence = labels[i, j, class_index].item() * bbox[4].item()          # pr(c) * IOU
                 if confidence > min_confidence:
-                    width = bbox[2] * config.IMAGE_SIZE[0]
-                    height = bbox[3] * config.IMAGE_SIZE[1]
+                    width = bbox[2] * IMAGE_SIZE[0]
+                    height = bbox[3] * IMAGE_SIZE[1]
                     tl = (
-                        bbox[0] * config.IMAGE_SIZE[0] + j * grid_size_x - width / 2,
-                        bbox[1] * config.IMAGE_SIZE[1] + i * grid_size_y - height / 2
+                        bbox[0] * IMAGE_SIZE[0] + j * grid_size_x - width / 2,
+                        bbox[1] * IMAGE_SIZE[1] + i * grid_size_y - height / 2
                     )
                     bboxes.append([tl, width, height, confidence, class_index])
 
@@ -186,7 +183,7 @@ def plot_boxes(data, labels, classes, color='orange', min_confidence=0.2, max_ov
             # Annotate image
             draw.rectangle((tl, (tl[0] + width, tl[1] + height)), outline='orange')
             text_pos = (max(0, tl[0]), max(0, tl[1] - 11))
-            text = f'{classes.get(class_index)} {round(confidence * 100, 1)}%'
+            text = f'{classes[class_index]} {round(confidence * 100, 1)}%'
             
             text_bbox = draw.textbbox(text_pos, text)
             draw.rectangle(text_bbox, fill='orange')

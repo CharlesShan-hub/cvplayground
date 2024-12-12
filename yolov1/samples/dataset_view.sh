@@ -22,4 +22,4 @@ python $PYTHON_SCRIPT \
     --B 2 \
     --C 20 \
     --normalize False \
-    --augment False
+    --augment True

@@ -11,11 +11,6 @@ WARMUP_EPOCHS = 0
 LEARNING_RATE = 1E-4
 
 EPSILON = 1E-6
-IMAGE_SIZE = (448, 448)
-
-S = 7       # Divide each image into a SxS grid
-B = 2       # Number of bounding boxes to predict
-C = 20      # Number of classes in the dataset
 
 from torch.cuda import is_available
 from clib.utils import Options
