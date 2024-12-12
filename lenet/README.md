@@ -7,7 +7,7 @@
 > * 论文摘要：https://blog.51cto.com/u_15178976/2790849
 > * 论文翻译(部分)：https://blog.csdn.net/qq_34288751/article/details/113575650
 > * 李沐：https://zh-v2.d2l.ai/chapter_convolutional-neural-networks/lenet.html
-> * 论文从第四部分开始没有精度，以后有空再读。
+> * 论文从第四部分开始没有精度，因为年代原因，略过。
 
 * 第一部分：概念介绍
   * 从数据中学习：此时还没有“训练-验证-测试”的约定俗成，作者讨论了在训练集上训练完并不能算成最好，实际中的错例更重要。

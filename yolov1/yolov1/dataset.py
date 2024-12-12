@@ -1,6 +1,4 @@
 import torch
-import torchvision.transforms as T
-import torchvision.transforms.functional as TF
 from torchvision.datasets.voc import VOCDetection
 import click
 from transform import transform

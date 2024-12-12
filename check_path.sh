@@ -2,10 +2,10 @@
 
 # Define dataset path list
 paths=(
+    '/root/autodl-fs/data/vision'
+    '/home/vision/users/sht/data/vision'
+    '/Volumes/Charles/data/vision'
     '/Users/kimshan/Public/data/vision'
-    '/root/autodl-fs/DataSets'
-    '/Volumes/Charles/DateSets'
-    '/home/vision/sht/DataSets'
 )
 
 # Find the first exist path

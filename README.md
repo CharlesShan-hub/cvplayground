@@ -3,7 +3,7 @@
 |    模型     | 领域 | 笔记 | 代码 |
 | :---------: | :--: | :--: | :--: |
 | [LeNet](./lenet/README.md)  | 分类 | ✅ | ✅ |
-| [AlexNet](./alexnet/README.md)| 分类 |  | ✅ |
+| [AlexNet](./alexnet/README.md)| 分类 | ✅ | ✅ |
 | [VGG](./vgg/README.md)| 分类 |  |  |
 | [NiN](./nin/README.md)| 分类 |  |  |
 | [GoogLeNet](./googlenet/README.md)| 分类 |  |  |
