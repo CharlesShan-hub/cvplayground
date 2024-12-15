@@ -25,8 +25,8 @@
     * 这是一个基于 Pytorch2 的 AlexNet 复现，并在 MNIST 数据集上进行训练与测试。
     * 该项目借用我自己写的深度学习基础框架 clib，由于 AlexNet 网络比较大，所以只保留最新的十个 checkpoint，较老的 checkpoint 会自动删掉。
 * 实现细节
-    * 大体和和 LeNet 的比较像：SGD、Holdout 训练、tensorboard记录过程、ReduceLROnPlateau 调整学习率。
-    * 详细介绍移至：[Lenet Readme](../lenet/README.md)
+    * 大体和 LeNet 的比较像：SGD、Holdout 训练、tensorboard记录过程、ReduceLROnPlateau 调整学习率。
+    * 详细介绍移至：[LeNet Readme](../lenet/README.md)
 
 ### 2.2. Roadmap
 
