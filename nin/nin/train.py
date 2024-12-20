@@ -37,10 +37,10 @@ class NinTrainer(BaseTrainer):
 
         self.transform = transform(self.opts.image_size)
 
-        train_dataset = datasets.MNIST(
+        train_dataset = datasets.FashionMNIST(
             root=opts.dataset_path, train=True, download=True, transform=self.transform
         )
-        test_dataset = datasets.MNIST(
+        test_dataset = datasets.FashionMNIST(
             root=opts.dataset_path, train=False, download=True, transform=self.transform
         )
         val_size = int(opts.val * len(train_dataset))
@@ -99,6 +99,8 @@ class NinTrainer(BaseTrainer):
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
+
+            # breakpoint()
 
         train_loss = running_loss / total
         train_accuracy = correct / total

@@ -2,7 +2,7 @@ import click
 import torch
 from torch.utils.data import DataLoader
 from config import TestOptions
-from dataset import MNIST
+from dataset import FashionMNIST
 from transform import transform
 from model import NiN
 from clib.inference import BaseInferencer
@@ -21,7 +21,7 @@ class NinTester(BaseInferencer):
 
         self.transform = transform(opts.image_size)
 
-        dataset = MNIST(
+        dataset = FashionMNIST(
             root=opts.dataset_path, train=False, transform=self.transform, download=True
         )
 

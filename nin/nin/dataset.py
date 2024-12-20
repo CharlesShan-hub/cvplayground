@@ -1,1 +1,1 @@
-from clib.dataset import MNIST
+from clib.dataset import FashionMNIST
