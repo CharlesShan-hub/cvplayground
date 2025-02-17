@@ -12,7 +12,7 @@ fi
 
 # Run Script
 
-PYTHON_SCRIPT="../cpfusion/inference.py"
+PYTHON_SCRIPT="../cpfusion/test.py"
 
 python $PYTHON_SCRIPT \
-    --layer 4
+    --dataset_path "${BASE_PATH}/torchvision"
