@@ -18,7 +18,7 @@ def c(image):
 
 def fusion(ir, vis, layer, debug=False):
     # 得到亮度通道
-    assert ir.shape[1] == 1 and ir.ndim == 4
+    assert ir.shape[1] == 1 and ir.ndim == 4 and vis.ndim == 4
     ir_y = rgb_to_ycbcr(gray_to_rgb(ir))[:,0:1,:,:]
     if vis.shape[1] == 1:
         vis = gray_to_rgb(vis)

@@ -12,8 +12,13 @@ fi
 
 # Run Script
 
-PYTHON_SCRIPT="../cpfusion/test.py"
+PYTHON_SCRIPT="../cpfusion/metrics.py"
+FUSE_NAME="f1"
+# FUSE_NAME="deepfuse"
 
 python $PYTHON_SCRIPT \
     --dataset_path "${BASE_PATH}/torchvision"\
-    --save_path "${BASE_PATH}/torchvision/f1"
+    --fuse_path "${BASE_PATH}/temp/${FUSE_NAME}"\
+    --fuse_name "${FUSE_NAME}"\
+    --metrics_path "${BASE_PATH}/temp/${FUSE_NAME}"
+

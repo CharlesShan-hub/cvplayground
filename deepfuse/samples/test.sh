@@ -12,8 +12,10 @@ fi
 
 # Run Script
 
-PYTHON_SCRIPT="../cpfusion/test.py"
+PYTHON_SCRIPT="../deepfuse/test.py"
 
 python $PYTHON_SCRIPT \
     --dataset_path "${BASE_PATH}/torchvision"\
-    --save_path "${BASE_PATH}/torchvision/f1"
+    --save_path "${BASE_PATH}/temp/deepfuse"\
+    --pre_trained "/Volumes/Charles/DateSets/Model/DeepFuse/DeepFuse_model.pth"
+
