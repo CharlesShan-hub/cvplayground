@@ -4,6 +4,7 @@ from clib.algorithms.msd import Laplacian
 from utils import *
 from model import *
 import copy
+from pathlib import Path
 
 __all__ = [
     'fusion'
@@ -137,6 +138,38 @@ def main(**kwargs):
 
     glance([ir,vis,fusion(ir, vis, kwargs['layer'], debug=True)],title=['ir','vis','fused'],auto_contrast=False,clip=True)
 
+device = torch.device('mps') if torch.backends.mps.is_available() else torch.device('cpu') 
+
+@click.command()
+@click.option("--layer", type=int, default=4)
+def test_tno(**kwargs):
+    p = r'/Volumes/Charles/data/vision/torchvision/tno/tno'
+    for i in (Path(p) / 'ir').glob("*.png"):
+        ir = path_to_gray(i).to(device)
+        vis = path_to_rgb(Path(p) / 'vis' / i.name).to(device)
+        ir = to_tensor(ir).unsqueeze(0)
+        vis = to_tensor(vis).unsqueeze(0)
+        fused = fusion(ir, vis, kwargs['layer'], debug=False)
+        name = Path(p) / 'fused' / 'cpfusion' / i.name
+        print(f"Saving {name}")
+        save_array_to_img(fused, name, True)
+
+
+@click.command()
+@click.option("--layer", type=int, default=4)
+def test_llvip(**kwargs):
+    p = r'/Volumes/Charles/data/vision/torchvision/llvip'
+    for i in (Path(p) / 'infrared' / 'test').glob("*.jpg"):
+        ir = path_to_gray(i)
+        vis = path_to_rgb(Path(p) / 'visible' / 'test' / i.name)
+        ir = to_tensor(ir).unsqueeze(0)
+        vis = to_tensor(vis).unsqueeze(0)
+        fused = fusion(ir, vis, kwargs['layer'], debug=False)
+        name = Path(p) / 'fused' / 'cpfusion' / i.name
+        print(f"Saving {name}")
+        save_array_to_img(fused, name, True)
 
 if __name__ == '__main__':
-    main()
+    # main()
+    # test_tno()
+    test_llvip()
