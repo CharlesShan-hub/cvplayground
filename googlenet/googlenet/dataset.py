@@ -1,5 +1,5 @@
-from clib.dataset import ImageNetVal
-from clib.utils import glance
+from cslib.datasets import ImageNetVal
+from cslib.utils import glance
 import click
 
 __all__ = ['ImageNetVal']

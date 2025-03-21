@@ -6,8 +6,8 @@ from config import TestOptions
 from dataset import ImageNetVal
 from transform import transform
 import model as models
-from clib.inference import BaseInferencer
-from clib.utils import glance
+from cslib.inference import BaseInferencer
+from cslib.utils import glance
 
 
 class VggTester(BaseInferencer):
@@ -44,7 +44,7 @@ class VggTester(BaseInferencer):
 
         self.test_loader = DataLoader(dataset=dataset, batch_size=opts.batch_size, shuffle=False)
     
-    def test(self):
+    def test(self) -> None:
         assert self.model is not None
         assert self.test_loader is not None
         self.model.eval()

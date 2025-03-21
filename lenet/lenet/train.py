@@ -10,7 +10,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 from transform import transform
 from model import LeNet
 from config import TrainOptions
-from clib.train import BaseTrainer
+from cslib.train import BaseTrainer
 
 
 class LeNetTrainer(BaseTrainer):

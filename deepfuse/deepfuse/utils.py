@@ -1,7 +1,7 @@
 from typing import Tuple
 import torch
 
-from clib.utils import *
+from cslib.utils import *
 
 def weightedFusion(
         cr1: torch.Tensor, 

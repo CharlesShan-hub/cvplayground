@@ -6,8 +6,8 @@ from config import TestOptions
 from dataset import ImageNetVal
 from transform import transform
 from model import googlenet, GoogLeNet_Weights
-from clib.inference import BaseInferencer
-from clib.utils import glance
+from cslib.inference import BaseInferencer
+from cslib.utils import glance
 
 
 class GoogLeNetTester(BaseInferencer):

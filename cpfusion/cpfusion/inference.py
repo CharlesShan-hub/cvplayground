@@ -1,6 +1,6 @@
 import click
-from clib.utils import *
-from clib.algorithms.msd import Laplacian
+from cslib.utils import rgb_to_ycbcr, ycbcr_to_rgb, gray_to_rgb, glance
+from cslib.algorithms.msd import Laplacian
 from utils import *
 from model import *
 import copy
@@ -123,6 +123,8 @@ def fusion(ir, vis, layer, debug=False):
     # save_array_to_img(fused=)
     return fused
 
+device = torch.device('mps') if torch.backends.mps.is_available() else torch.device('cpu') 
+
 @click.command()
 @click.option("--layer", type=int, default=4)
 def main(**kwargs):
@@ -130,15 +132,14 @@ def main(**kwargs):
     # vis = path_to_rgb('/Users/kimshan/Public/project/paper/vis_250423.jpg')
     # ir = path_to_gray('/Users/kimshan/Public/project/paper/ir_010379.jpg')
     # vis = path_to_rgb('/Users/kimshan/Public/project/paper/vis_010379.jpg')
-    ir = path_to_gray('/Users/kimshan/Public/project/paper/ir_010001.jpg')
-    vis = path_to_rgb('/Users/kimshan/Public/project/paper/vis_010001.jpg')
+    ir = path_to_gray('/Volumes/Charles/data/vision/torchvision/tno/tno/ir/88.png')
+    vis = path_to_rgb('/Volumes/Charles/data/vision/torchvision/tno/tno/vis/88.png')
     
-    ir = to_tensor(ir).unsqueeze(0)
-    vis = to_tensor(vis).unsqueeze(0)
+    ir = to_tensor(ir).unsqueeze(0)#.to(device)
+    vis = to_tensor(vis).unsqueeze(0)#.to(device)
 
-    glance([ir,vis,fusion(ir, vis, kwargs['layer'], debug=True)],title=['ir','vis','fused'],auto_contrast=False,clip=True)
-
-device = torch.device('mps') if torch.backends.mps.is_available() else torch.device('cpu') 
+    # glance([ir,vis,fusion(ir, vis, kwargs['layer'], debug=True)],title=['ir','vis','fused'],auto_contrast=False,clip=True)
+    save_array_to_img(fusion(ir, vis, kwargs['layer'], debug=False), filename='/Volumes/Charles/data/vision/torchvision/tno/tno/fused/cpfusion/88.png')
 
 @click.command()
 @click.option("--layer", type=int, default=4)
@@ -146,9 +147,9 @@ def test_tno(**kwargs):
     p = r'/Volumes/Charles/data/vision/torchvision/tno/tno'
     for i in (Path(p) / 'ir').glob("*.png"):
         ir = path_to_gray(i).to(device)
-        vis = path_to_rgb(Path(p) / 'vis' / i.name).to(device)
-        ir = to_tensor(ir).unsqueeze(0)
-        vis = to_tensor(vis).unsqueeze(0)
+        vis = path_to_rgb(Path(p) / 'vis' / i.name)
+        ir = to_tensor(ir).unsqueeze(0).to(device)
+        vis = to_tensor(vis).unsqueeze(0).to(device)
         fused = fusion(ir, vis, kwargs['layer'], debug=False)
         name = Path(p) / 'fused' / 'cpfusion' / i.name
         print(f"Saving {name}")
@@ -162,14 +163,14 @@ def test_llvip(**kwargs):
     for i in (Path(p) / 'infrared' / 'test').glob("*.jpg"):
         ir = path_to_gray(i)
         vis = path_to_rgb(Path(p) / 'visible' / 'test' / i.name)
-        ir = to_tensor(ir).unsqueeze(0)
-        vis = to_tensor(vis).unsqueeze(0)
+        ir = to_tensor(ir).unsqueeze(0).to(device)
+        vis = to_tensor(vis).unsqueeze(0).to(device)
         fused = fusion(ir, vis, kwargs['layer'], debug=False)
         name = Path(p) / 'fused' / 'cpfusion' / i.name
         print(f"Saving {name}")
         save_array_to_img(fused, name, True)
 
 if __name__ == '__main__':
-    # main()
+    main()
     # test_tno()
-    test_llvip()
+    # test_llvip()

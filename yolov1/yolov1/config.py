@@ -13,8 +13,7 @@ LEARNING_RATE = 1E-4
 EPSILON = 1E-6
 
 from torch.cuda import is_available
-from clib.utils import Options
-
+from cslib.utils import Options
 
 class TrainOptions(Options):
     def __init__(self):

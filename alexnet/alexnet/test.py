@@ -5,8 +5,8 @@ from config import TestOptions
 from dataset import MNIST
 from transform import transform
 from model import AlexNet
-from clib.inference import BaseInferencer
-from clib.utils import glance
+from cslib.inference import BaseInferencer
+from cslib.utils import glance
 
 
 class LeNetTester(BaseInferencer):

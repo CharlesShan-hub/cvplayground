@@ -1,11 +1,11 @@
 import click
-from clib.dataset.fusion import TNO, LLVIP
+from cslib.datasets.fusion import TNO, LLVIP
     
 @click.command()
 @click.option("--dataset_path", type=click.Path(exists=True), required=True)
 def test_tno(**kwargs):
     tno = TNO(root=kwargs['dataset_path'], img_type='lwir', mode='both', transform=None, download=True)
-    print('tno (lwir,pair+seq)',len(list(tno)))
+    print('tno (lwir,pair+seq)',len(tno))
     # tno (lwir,pair+seq) 235
     
 @click.command()
@@ -53,7 +53,7 @@ def test(**kwargs):
 
 if __name__ == '__main__':
     from torch.utils.data import ConcatDataset
-    from torch.utils.data import DataLoader, random_split
+    from torch.utils.data import random_split
     import torch
     test()
     # test_tno()

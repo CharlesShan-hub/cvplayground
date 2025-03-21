@@ -4,7 +4,7 @@ import click
 from transform import transform
 from config import DisplayOptions
 from utils import plot_boxes
-from clib.utils import to_numpy
+from cslib.utils import to_numpy
 import numpy as np
 
 class YoloPascalVocDataset(VOCDetection):

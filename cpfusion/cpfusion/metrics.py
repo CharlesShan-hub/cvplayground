@@ -1,11 +1,11 @@
 import click
 import sqlite3
-from clib.utils import path_to_rgb, to_tensor
-from clib.dataset.fusion import TNO, LLVIP
+from cslib.utils import path_to_rgb, to_tensor
+from cslib.datasets.fusion import TNO, LLVIP
 from utils import *
 from model import *
 from pathlib import Path
-from clib.metrics import fusion
+from cslib.metrics import fusion
 
 md = {
     # 'ag': fusion.ag_metric,

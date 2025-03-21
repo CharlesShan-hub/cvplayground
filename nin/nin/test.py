@@ -5,8 +5,8 @@ from config import TestOptions
 from dataset import FashionMNIST
 from transform import transform
 from model import NiN
-from clib.inference import BaseInferencer
-from clib.utils import glance
+from cslib.inference import BaseInferencer
+from cslib.utils import glance
 
 
 class NinTester(BaseInferencer):

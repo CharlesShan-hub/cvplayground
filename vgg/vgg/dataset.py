@@ -1,5 +1,5 @@
-from clib.dataset import TinyImageNet, ImageNetVal
-from clib.utils import glance
+from cslib.datasets import TinyImageNet, ImageNetVal
+from cslib.utils import glance
 import click
 
 __all__ = ['TinyImageNet', 'ImageNetVal']

@@ -1,11 +1,11 @@
 import click
 import sqlite3
-from clib.utils import glance, path_to_gray, path_to_rgb, save_array_to_img, to_tensor
-from clib.dataset.fusion import TNO, LLVIP
+from cslib.utils import glance, path_to_gray, path_to_rgb, save_array_to_img, to_tensor
+from cslib.datasets.fusion import TNO, LLVIP
 from utils import *
 from model import *
 from pathlib import Path
-from clib.metrics import fusion
+from cslib.metrics import fusion
 
 def summarize_metrics(db_path, fuse_name):
     conn = sqlite3.connect(db_path)

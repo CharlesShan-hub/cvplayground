@@ -3,9 +3,9 @@ Transform to pyramid by adaptive Gaussian kernel
 '''
 
 import click
-from clib.utils import glance
-from clib.dataset.fusion import LLVIP, TNO
-from clib.algorithms.msd import Laplacian
+from cslib.utils import glance
+from cslib.datasets.fusion import LLVIP, TNO
+from cslib.algorithms.msd import Laplacian
 from torch.utils.data import DataLoader
 from torchvision.transforms import Compose, ToTensor
 

@@ -1,1 +1,1 @@
-from clib.dataset import MNIST
+from cslib.datasets import MNIST

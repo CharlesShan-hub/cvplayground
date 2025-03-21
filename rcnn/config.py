@@ -1,5 +1,5 @@
 from torch.cuda import is_available
-from clib.utils import Options
+from cslib.utils import Options
 
 
 class TrainAldexNetOptions(Options):

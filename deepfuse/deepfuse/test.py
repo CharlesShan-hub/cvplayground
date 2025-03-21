@@ -1,6 +1,6 @@
 import click
 from pathlib import Path
-from clib.dataset.fusion import LLVIP
+from cslib.datasets.fusion import LLVIP
 from config import TestOptions
 from inference import inference
 from model import load_model
