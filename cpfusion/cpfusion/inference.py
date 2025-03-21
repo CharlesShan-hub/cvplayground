@@ -1,37 +1,50 @@
 import click
-from cslib.utils import rgb_to_ycbcr, ycbcr_to_rgb, gray_to_rgb, glance
-from cslib.algorithms.msd import Laplacian
+from cslib.utils import *
+from cslib.algorithms.msd import Laplacian, Contrust
 from utils import *
 from model import *
 import copy
 from pathlib import Path
+import torch
 
 __all__ = [
     'fusion'
 ]
 
-def c(image):
+def _c(image: torch.Tensor) -> torch.Tensor:
     B,_,H,W = image.shape
     res = torch.zeros(size=(B,3,H,W))
     res[:,0:1,:,:] = image
     res[:,1:3,:,:] = 128.0
-    return ycbcr_to_rgb(res)
+    return to_tensor(ycbcr_to_rgb(res))
 
-def fusion(ir, vis, layer, debug=False):
-    # 得到亮度通道
+def fusion(
+        ir: torch.Tensor, 
+        vis: torch.Tensor, 
+        layer: int = 4, 
+        debug: bool = False,
+        msd_method: str = 'Laplacian',
+    ) -> torch.Tensor:
+    # 得到Y通道
     assert ir.shape[1] == 1 and ir.ndim == 4 and vis.ndim == 4
-    ir_y = rgb_to_ycbcr(gray_to_rgb(ir))[:,0:1,:,:]
     if vis.shape[1] == 1:
-        vis = gray_to_rgb(vis)
-    vis_ycbcr = rgb_to_ycbcr(vis)
-    vis_y = vis_ycbcr[:,0:1,:,:]
+        vis = to_tensor(gray_to_rgb(vis))
+    vis_ycbcr = to_tensor(rgb_to_ycbcr(vis))
+    vis_y = vis_ycbcr[:, :1, :, :]
+    ir_y = to_tensor(rgb_to_ycbcr(gray_to_rgb(ir)))[:, :1, :, :]
 
     # 多尺度分解
-    ir_pyr = Laplacian(image = ir_y, layer = layer, gau_blur_way = 'Adaptive')
-    vis_pyr = Laplacian(image = vis_y, layer = layer, gau_blur_way = 'Adaptive')
+    if msd_method == 'Laplacian':
+        ir_pyr = Laplacian(image = ir_y, layer = layer, gau_blur_way = 'Adaptive')
+        vis_pyr = Laplacian(image = vis_y, layer = layer, gau_blur_way = 'Adaptive')
+    elif msd_method == 'Contrust':
+        ir_pyr = Contrust(image = ir_y, layer = layer, gau_blur_way = 'Adaptive')
+        vis_pyr = Contrust(image = vis_y, layer = layer, gau_blur_way = 'Adaptive')
+    else:
+        raise ValueError(f'Unknown msd method: {msd_method}')
     if debug:
         glance(
-            [c(ir_pyr.recon), c(vis_pyr.recon), c(ir_y), c(vis_y)], 
+            [_c(ir_pyr.recon), _c(vis_pyr.recon), _c(ir_y), _c(vis_y)], 
             title=['IR rebuild', 'VIS rebuild', 'IR', 'VIS'],
             shape=(2,2), suptitle = 'Multi-Scale Decomposition (result)')
 
@@ -40,7 +53,7 @@ def fusion(ir, vis, layer, debug=False):
     vis_base = vis_pyr.gaussian
     if debug:
         glance(
-            [torch.abs(c(i)) for i in ir_base] + [torch.abs(c(i)) for i in vis_base],
+            [torch.abs(_c(i)) for i in ir_base] + [torch.abs(_c(i)) for i in vis_base],
             title=[f'Ir Base L{i+1}' for i in range(layer+1)] + [f'Vis Base L{i+1}' for i in range(layer+1)],
             shape=(2,layer+1),suptitle = 'Multi-Scale Decomposition (Base)'
         )
@@ -50,7 +63,7 @@ def fusion(ir, vis, layer, debug=False):
     vis_detail = vis_pyr.pyramid
     if debug:
         glance(
-            [torch.abs(c(i)) for i in ir_detail] + [torch.abs(c(i)) for i in vis_detail],
+            [torch.abs(_c(i)) for i in ir_detail] + [torch.abs(_c(i)) for i in vis_detail],
             title=[f'Ir Detail L{i+1}' for i in range(layer)] + [f'Vis Detail L{i+1}' for i in range(layer)],
             shape=(2,layer),suptitle = 'Multi-Scale Decomposition (Detail)'
         )
@@ -66,7 +79,7 @@ def fusion(ir, vis, layer, debug=False):
     fused_base = base_layer_fuse(ir_base, vis_base, wcc)
     if debug:
         glance(
-            [torch.abs(c(fused_base[:,i:i+1,:,:])) for i in range(layer)],
+            [torch.abs(_c(fused_base[:,i:i+1,:,:])) for i in range(layer)],
             title=[f'f_b{i+1} wcc={wcc[0,i:i+1,0,0].item()}' for i in range(layer)],
             suptitle = 'correlation coefficient weights'
         )
@@ -80,10 +93,10 @@ def fusion(ir, vis, layer, debug=False):
     vis_detail_enhanced = attension_block(vis_detail)
     if debug:
         glance(
-            [torch.abs(c(ir_detail[:,i:i+1,:,:])) for i in range(layer)]+\
-            [torch.abs(c(ir_detail_enhanced[:,i:i+1,:,:])) for i in range(layer)]+\
-            [torch.abs(c(vis_detail[:,i:i+1,:,:])) for i in range(layer)]+\
-            [torch.abs(c(vis_detail_enhanced[:,i:i+1,:,:])) for i in range(layer)],
+            [torch.abs(_c(ir_detail[:,i:i+1,:,:])) for i in range(layer)]+\
+            [torch.abs(_c(ir_detail_enhanced[:,i:i+1,:,:])) for i in range(layer)]+\
+            [torch.abs(_c(vis_detail[:,i:i+1,:,:])) for i in range(layer)]+\
+            [torch.abs(_c(vis_detail_enhanced[:,i:i+1,:,:])) for i in range(layer)],
             title=[f'irl{i+1}' for i in range(layer)]+\
             [f'ir with Sim l{i+1}' for i in range(layer)]+\
             [f'vis l{i+1}' for i in range(layer)]+\
@@ -106,7 +119,7 @@ def fusion(ir, vis, layer, debug=False):
 
     # 恢复成 RGB
     # glance(fused_pyr.recon,auto_contrast=True,clip=True)
-    return ycbcr_to_rgb(fused).clip(max=1.0, min=0.0)
+    return to_tensor(ycbcr_to_rgb(fused)).clip(max=1.0, min=0.0)
     
     # glance([fused,ir,vis],title=['fused','ir','vis'],auto_contrast=False,clip=True)
 
@@ -123,50 +136,69 @@ def fusion(ir, vis, layer, debug=False):
     # save_array_to_img(fused=)
     return fused
 
-device = torch.device('mps') if torch.backends.mps.is_available() else torch.device('cpu') 
-
 @click.command()
 @click.option("--layer", type=int, default=4)
+@click.option("--msd_method", type=str, default=['Laplacian','Contrust'][0])
+@click.option("--fusion_strategy", type=str, default=['CC+MAX','CC','MAX'][0])
+@click.option("--pam_module", type=bool, default=True)
+@click.option("--device", type=str, default='auto')
 def main(**kwargs):
+    kwargs['device'] = get_device(kwargs['device'])
+    opts = Options('CPFusion', kwargs)
+    opts.present()
+
+    # image_index = 48
     # ir = path_to_gray('/Users/kimshan/Public/project/paper/ir_250423.jpg')
     # vis = path_to_rgb('/Users/kimshan/Public/project/paper/vis_250423.jpg')
     # ir = path_to_gray('/Users/kimshan/Public/project/paper/ir_010379.jpg')
     # vis = path_to_rgb('/Users/kimshan/Public/project/paper/vis_010379.jpg')
-    ir = path_to_gray('/Volumes/Charles/data/vision/torchvision/tno/tno/ir/88.png')
-    vis = path_to_rgb('/Volumes/Charles/data/vision/torchvision/tno/tno/vis/88.png')
-    
-    ir = to_tensor(ir).unsqueeze(0)#.to(device)
-    vis = to_tensor(vis).unsqueeze(0)#.to(device)
 
-    # glance([ir,vis,fusion(ir, vis, kwargs['layer'], debug=True)],title=['ir','vis','fused'],auto_contrast=False,clip=True)
-    save_array_to_img(fusion(ir, vis, kwargs['layer'], debug=False), filename='/Volumes/Charles/data/vision/torchvision/tno/tno/fused/cpfusion/88.png')
+    image_index = 2
+    ir = path_to_gray(f'/Volumes/Charles/data/vision/torchvision/tno/tno/ir/{image_index}.png')
+    vis = path_to_rgb(f'/Volumes/Charles/data/vision/torchvision/tno/tno/vis/{image_index}.png')
+    
+    ir = to_tensor(ir).unsqueeze(0).to(opts.device)
+    vis = to_tensor(vis).unsqueeze(0).to(opts.device)
+
+    glance([ir,vis,fusion(ir, vis, kwargs['layer'], debug=True)],title=['ir','vis','fused'],auto_contrast=False,clip=True)
+    # save_array_to_img(fusion(ir, vis, kwargs['layer'], debug=False), filename=f'/Volumes/Charles/data/vision/torchvision/tno/tno/fused/cpfusion/{image_index}.png')
 
 @click.command()
+@click.option("--p", type=str, default="/Volumes/Charles/data/vision/torchvision/tno/tno")
 @click.option("--layer", type=int, default=4)
+@click.option("--msd_method", type=str, default=['Laplacian','Contrust'][0])
+@click.option("--device", type=str, default='auto')
 def test_tno(**kwargs):
-    p = r'/Volumes/Charles/data/vision/torchvision/tno/tno'
-    for i in (Path(p) / 'ir').glob("*.png"):
-        ir = path_to_gray(i).to(device)
-        vis = path_to_rgb(Path(p) / 'vis' / i.name)
-        ir = to_tensor(ir).unsqueeze(0).to(device)
-        vis = to_tensor(vis).unsqueeze(0).to(device)
+    kwargs['device'] = get_device(kwargs['device'])
+    opts = Options('CPFusion TNO', kwargs)
+    opts.present()
+    for i in (Path(opts.p) / 'ir').glob("*.png"):
+        ir = to_tensor(path_to_gray(i)).to(opts.device)
+        vis = path_to_rgb(Path(opts.p) / 'vis' / i.name)
+        ir = to_tensor(ir).unsqueeze(0).to(opts.device)
+        vis = to_tensor(vis).unsqueeze(0).to(opts.device)
         fused = fusion(ir, vis, kwargs['layer'], debug=False)
-        name = Path(p) / 'fused' / 'cpfusion' / i.name
+        name = Path(opts.p) / 'fused' / 'cpfusion' / i.name
         print(f"Saving {name}")
         save_array_to_img(fused, name, True)
 
 
 @click.command()
+@click.option("--p", type=str, default="/Volumes/Charles/data/vision/torchvision/llvip")
 @click.option("--layer", type=int, default=4)
+@click.option("--msd_method", type=str, default=['Laplacian','Contrust'][0])
+@click.option("--device", type=str, default='auto')
 def test_llvip(**kwargs):
-    p = r'/Volumes/Charles/data/vision/torchvision/llvip'
-    for i in (Path(p) / 'infrared' / 'test').glob("*.jpg"):
+    kwargs['device'] = get_device(kwargs['device'])
+    opts = Options('CPFusion LLVIP', kwargs)
+    opts.present()
+    for i in (Path(opts.p) / 'infrared' / 'test').glob("*.jpg"):
         ir = path_to_gray(i)
-        vis = path_to_rgb(Path(p) / 'visible' / 'test' / i.name)
-        ir = to_tensor(ir).unsqueeze(0).to(device)
-        vis = to_tensor(vis).unsqueeze(0).to(device)
+        vis = path_to_rgb(Path(opts.p) / 'visible' / 'test' / i.name)
+        ir = to_tensor(ir).unsqueeze(0).to(opts.device)
+        vis = to_tensor(vis).unsqueeze(0).to(opts.device)
         fused = fusion(ir, vis, kwargs['layer'], debug=False)
-        name = Path(p) / 'fused' / 'cpfusion' / i.name
+        name = Path(opts.p) / 'fused' / 'cpfusion' / i.name
         print(f"Saving {name}")
         save_array_to_img(fused, name, True)
 
