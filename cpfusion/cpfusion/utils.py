@@ -1,7 +1,14 @@
 import torch 
-import torch.nn.functional as F
 
-def msd_align(images):
+__all__ = [
+    'msd_align', 
+    'msd_resample', 
+    'correlation_coefficient_weights', 
+    '_base_layer_fuse',
+    '_detail_layer_fuse',
+]
+
+def msd_align(images):    
     def up_sample(img, target_shape):
         batch_size, channels, height, width = img.size()
         padded_img = torch.zeros(batch_size, channels, 2 * height, 2 * width, device=img.device)
@@ -44,13 +51,13 @@ def correlation_coefficient_weights(X, Y):
     
     return W_CC
 
-def base_layer_fuse(X, Y, wcc):
+def _base_layer_fuse(X, Y, wcc):
     weight = 1.5 ** ((wcc + 1) / 2)
     fused = torch.zeros_like(X)
     weighted_X = weight * X
     weighted_Y = (1 - weight) * Y
     fused[:, ::2, :, :] = torch.max(X, Y)[:, ::2, :, :]
-    fused[:,1::2, :, :] = (weight * X + (1 - weight) * Y)[:,1::2, :, :]
+    fused[:,1::2, :, :] = (weighted_X + weighted_Y)[:,1::2, :, :]
 
     return fused
     # return fused.mean(dim=1,keepdim=True)
@@ -171,7 +178,7 @@ def restore_tensor_from_blocks(blocks,original_shape):
 #         X = fold(X, paddings.pop())
 #     return X
 
-def detail_layer_fuse(X,Y):
+def _detail_layer_fuse(X,Y):
     patchx = divide_tensor_into_blocks(X)
     patchy = divide_tensor_into_blocks(Y)
     SF_X = calculate_SF(patchx)

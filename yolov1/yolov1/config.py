@@ -1,6 +1,4 @@
 import os
-import torchvision.transforms as T
-
 
 DATA_PATH = 'data'
 CLASSES_PATH = os.path.join(DATA_PATH, 'classes.json')
