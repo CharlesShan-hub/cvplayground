@@ -6,8 +6,6 @@ from dataset import MNIST
 from transform import transform
 from model import LeNet
 from cslib.inference import BaseInferencer
-from cslib.utils import glance
-
 
 class LeNetTester(BaseInferencer):
     def __init__(self, opts):
@@ -30,6 +28,7 @@ class LeNetTester(BaseInferencer):
 
         self.test_loader = DataLoader(dataset=dataset, batch_size=opts.batch_size, shuffle=False)
     
+
     def test(self):
         assert self.model is not None
         assert self.test_loader is not None

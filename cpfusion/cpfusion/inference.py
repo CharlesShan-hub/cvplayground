@@ -1,4 +1,6 @@
 import click
+from typing import Union
+import torch
 from cslib.utils.image import to_tensor, rgb_to_ycbcr, gray_to_rgb, ycbcr_to_rgb, save_array_to_img, path_to_gray, path_to_rgb
 from cslib.utils import get_device, Options, glance
 from cslib.algorithms.msd import Laplacian, Contrust
@@ -7,7 +9,7 @@ from utils import *
 from model import *
 import copy
 from pathlib import Path
-import torch
+
 
 __all__ = [
     'fusion'
@@ -22,7 +24,7 @@ def _c(image: torch.Tensor) -> torch.Tensor:
     res[:,1:3,:,:] = 128.0
     return to_tensor(ycbcr_to_rgb(res))
 
-def image_init(ir, vis):
+def image_init(ir: torch.Tensor, vis: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     assert ir.shape[1] == 1 and ir.ndim == 4 and vis.ndim == 4
     if vis.shape[1] == 1:
         vis = to_tensor(gray_to_rgb(vis))
@@ -31,7 +33,7 @@ def image_init(ir, vis):
     ir_y = to_tensor(rgb_to_ycbcr(gray_to_rgb(ir)))[:, :1, :, :]
     return vis_ycbcr, vis_y, ir_y
 
-def apple_msd(ir_y, vis_y, layer, msd_method, debug):
+def apple_msd(ir_y: torch.Tensor, vis_y: torch.Tensor, layer: int, msd_method: str, debug: bool) -> tuple[Union[Laplacian, Contrust], Union[Laplacian, Contrust]]:
     if msd_method == 'Laplacian':
         ir_pyr = Laplacian(image = ir_y, layer = layer, gau_blur_way = 'Adaptive')
         vis_pyr = Laplacian(image = vis_y, layer = layer, gau_blur_way = 'Adaptive')
@@ -47,7 +49,7 @@ def apple_msd(ir_y, vis_y, layer, msd_method, debug):
             shape=(2,2), suptitle = 'Multi-Scale Decomposition (result)')
     return ir_pyr, vis_pyr
 
-def get_base(ir_pyr, vis_pyr, layer, debug):
+def get_base(ir_pyr: Union[Laplacian, Contrust], vis_pyr: Union[Laplacian, Contrust], layer: int, debug: bool) -> tuple[torch.Tensor, torch.Tensor]:
     ir_base = ir_pyr.gaussian
     vis_base = vis_pyr.gaussian
     if debug:
@@ -60,7 +62,7 @@ def get_base(ir_pyr, vis_pyr, layer, debug):
     vis_base = torch.cat(msd_align(vis_base),dim=1)
     return ir_base, vis_base
 
-def get_detail(ir_pyr, vis_pyr, layer, debug):
+def get_detail(ir_pyr: Union[Laplacian, Contrust], vis_pyr: Union[Laplacian, Contrust], layer: int, debug: bool) -> tuple[torch.Tensor, torch.Tensor]:
     ir_detail = ir_pyr.pyramid
     vis_detail = vis_pyr.pyramid
     if debug:
@@ -74,7 +76,7 @@ def get_detail(ir_pyr, vis_pyr, layer, debug):
     vis_detail = torch.cat(msd_align(vis_detail),dim=1)
     return ir_detail, vis_detail
 
-def base_layer_fuse(ir_base, vis_base, fusion_method, layer, debug):
+def base_layer_fuse(ir_base: torch.Tensor, vis_base: torch.Tensor, fusion_method: str, layer: int, debug: bool) -> torch.Tensor:
     if fusion_method == 'CC+MAX':
         wcc = correlation_coefficient_weights(ir_base, vis_base)
         fused_base = _base_layer_fuse(ir_base, vis_base, wcc)
@@ -105,7 +107,7 @@ def base_layer_fuse(ir_base, vis_base, fusion_method, layer, debug):
         raise ValueError(f'Unknown fusion method: {fusion_method}')
     return fused_base
 
-def detail_layer_fuse(ir_detail, vis_detail, attension, layer, debug):
+def detail_layer_fuse(ir_detail: torch.Tensor, vis_detail: torch.Tensor, attension: str, layer: int, debug: bool) -> torch.Tensor:
     if attension != "None":
         if attension == 'SimAM':
             attension_block = SimAMBlock()  
@@ -134,7 +136,7 @@ def detail_layer_fuse(ir_detail, vis_detail, attension, layer, debug):
     # 细节层融合
     return _detail_layer_fuse(ir_detail_enhanced, vis_detail_enhanced)
 
-def reconstruction(fused_base, fused_detail, ir_pyr, vis_ycbcr):
+def reconstruction(fused_base: torch.Tensor, fused_detail: torch.Tensor, ir_pyr: Union[Laplacian, Contrust], vis_ycbcr: torch.Tensor) -> torch.Tensor:
     fused_base = msd_resample(fused_base)
     fused_detail = msd_resample(fused_detail)
     fused_pyr = copy.deepcopy(ir_pyr)
@@ -174,6 +176,7 @@ def fusion(
 
     # 重构图像 - 下采样 + 恢复成 RGB
     fused = reconstruction(fused_base, fused_detail, ir_pyr, vis_ycbcr)
+    
     return fused
 
 @click.command()
@@ -182,7 +185,7 @@ def fusion(
 @click.option("--fusion_strategy", type=str, default=['CC+MAX','CC','MAX'][0])
 @click.option("--pam_module", type=bool, default=True)
 @click.option("--device", type=str, default='auto')
-def main(**kwargs):
+def main(**kwargs) -> None:
     kwargs['device'] = get_device(kwargs['device'])
     opts = Options('CPFusion', kwargs)
     opts.present()
@@ -208,7 +211,7 @@ def main(**kwargs):
 @click.option("--layer", type=int, default=4)
 @click.option("--msd_method", type=str, default=['Laplacian','Contrust'][0])
 @click.option("--device", type=str, default='auto')
-def test_tno(**kwargs):
+def test_tno(**kwargs) -> None:
     kwargs['device'] = get_device(kwargs['device'])
     opts = Options('CPFusion TNO', kwargs)
     opts.present()
@@ -228,7 +231,7 @@ def test_tno(**kwargs):
 @click.option("--layer", type=int, default=4)
 @click.option("--msd_method", type=str, default=['Laplacian','Contrust'][0])
 @click.option("--device", type=str, default='auto')
-def test_llvip(**kwargs):
+def test_llvip(**kwargs) -> None:
     kwargs['device'] = get_device(kwargs['device'])
     opts = Options('CPFusion LLVIP', kwargs)
     opts.present()

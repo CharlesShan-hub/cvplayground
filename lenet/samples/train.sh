@@ -14,7 +14,7 @@ fi
 
 PYTHON_SCRIPT="../lenet/train.py"
 RES_PATH="${BASE_PATH}/model/lenet/mnist"
-NAME=$(date +'%Y_%m_%d_%H_%M')
+NAME=$(date +'%Y_%m_%d_%H_%M_%S')
 mkdir -p "${RES_PATH}/${NAME}"
 
 python $PYTHON_SCRIPT \

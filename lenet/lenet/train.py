@@ -91,11 +91,12 @@ class LeNetTrainer(BaseTrainer):
             labels = labels.to(self.opts.device)
             self.optimizer.zero_grad()
             outputs = self.model(images)
-            loss = self.criterion(outputs, labels)
-            loss.backward()
+            self.loss = self.criterion(outputs, labels)
+            assert self.loss is not None
+            self.loss.backward()
             self.optimizer.step()
             batch_index += 1
-            running_loss += loss
+            running_loss += self.loss
             pbar.set_description(
                 f"Epoch [{epoch}/{self.opts.max_epoch if self.opts.max_epoch != 0 else '∞'}]"
             )
@@ -106,7 +107,6 @@ class LeNetTrainer(BaseTrainer):
 
         train_loss = running_loss / total
         train_accuracy = correct / total
-        self.loss = loss
 
         self.writer.add_scalar(
             tag = "lr", 
@@ -126,8 +126,7 @@ class LeNetTrainer(BaseTrainer):
 
         print(f"Epoch [{epoch}/{self.opts.max_epoch if self.opts.max_epoch != 0 else '∞'}]", \
               f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.4f}")
-        
-        return train_loss
+
 
     def holdout_validate(self,epoch):
         assert self.model is not None
@@ -165,8 +164,7 @@ class LeNetTrainer(BaseTrainer):
 
         print(f"Epoch [{epoch}/{self.opts.max_epoch if self.opts.max_epoch != 0 else '∞'}]", \
               f"Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.4f}")
-
-        return val_loss
+              
     
     def test(self):
         assert self.model is not None

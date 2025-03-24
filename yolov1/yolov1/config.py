@@ -10,8 +10,7 @@ LEARNING_RATE = 1E-4
 
 EPSILON = 1E-6
 
-from torch.cuda import is_available
-from cslib.utils import Options
+from cslib.utils import Options, get_device
 
 class TrainOptions(Options):
     def __init__(self):
@@ -20,7 +19,7 @@ class TrainOptions(Options):
             {
                 # Utils
                 "comment": "",
-                "device": "cuda" if is_available() else "cpu",
+                "device": get_device(),
                 "model_base_path": "path/to/folder/to/save/ckpt",
                 "dataset_path": "path/to/dataset",
 
@@ -94,7 +93,7 @@ class TestOptions(Options):
             {
                 # Utils
                 "comment": "",
-                "device": "cuda" if is_available() else "cpu",
+                "device": get_device(),
                 "model_path": "path/to/model.ckpt",
                 "dataset_path": "path/to/dataset",
 
@@ -117,7 +116,7 @@ class DisplayOptions(Options):
         self.update(
             {
                 # Utils
-                "device": "cuda" if is_available() else "cpu",
+                "device": get_device(),
                 "dataset_path": "path/to/dataset",
 
                 # Model Option
