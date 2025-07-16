@@ -197,8 +197,10 @@ def main(**kwargs) -> None:
     # vis = path_to_rgb('/Users/kimshan/Public/project/paper/vis_010379.jpg')
 
     image_index = 2
-    ir = path_to_gray(f'/Volumes/Charles/data/vision/torchvision/tno/tno/ir/{image_index}.png')
-    vis = path_to_rgb(f'/Volumes/Charles/data/vision/torchvision/tno/tno/vis/{image_index}.png')
+    # ir = path_to_gray(f'/Volumes/Charles/data/vision/torchvision/tno/tno/ir/{image_index}.png')
+    # vis = path_to_rgb(f'/Volumes/Charles/data/vision/torchvision/tno/tno/vis/{image_index}.png')
+    ir = path_to_gray(f'/Users/kimshan/Public/data/vision/torchvision/tno/tno/lwir/{image_index}.png')
+    vis = path_to_gray(f'/Users/kimshan/Public/data/vision/torchvision/tno/tno/vis/{image_index}.png')
     
     ir = to_tensor(ir).unsqueeze(0).to(opts.device)
     vis = to_tensor(vis).unsqueeze(0).to(opts.device)

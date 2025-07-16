@@ -12,7 +12,6 @@ from model import NiN
 from config import TrainOptions
 from cslib.train import BaseTrainer
 
-
 class NinTrainer(BaseTrainer):
     def __init__(self, opts):
         super().__init__(opts)
@@ -79,6 +78,7 @@ class NinTrainer(BaseTrainer):
         assert self.train_loader is not None
         pbar = tqdm(self.train_loader, total=len(self.train_loader))
         running_loss = torch.tensor(0.0).to(self.opts.device)
+        loss = torch.tensor(0.0).to(self.opts.device)
         batch_index = 0
         correct = total = 0
         self.model.train()
@@ -124,8 +124,7 @@ class NinTrainer(BaseTrainer):
 
         print(f"Epoch [{epoch}/{self.opts.max_epoch if self.opts.max_epoch != 0 else '∞'}]", \
               f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_accuracy:.4f}")
-        
-        return train_loss
+
 
     def holdout_validate(self,epoch):
         assert self.model is not None
@@ -133,6 +132,7 @@ class NinTrainer(BaseTrainer):
         assert self.val_loader is not None
         assert self.scheduler is not None
         running_loss = torch.tensor(0.0).to(self.opts.device)
+        loss = torch.tensor(0.0).to(self.opts.device)
         correct = total = 0
         self.model.eval()
         with torch.no_grad():
@@ -164,7 +164,6 @@ class NinTrainer(BaseTrainer):
         print(f"Epoch [{epoch}/{self.opts.max_epoch if self.opts.max_epoch != 0 else '∞'}]", \
               f"Val Loss: {val_loss:.4f}, Val Accuracy: {val_accuracy:.4f}")
 
-        return val_loss
     
     def test(self):
         assert self.model is not None

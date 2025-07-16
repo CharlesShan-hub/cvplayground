@@ -46,7 +46,7 @@ class YoloPascalVocDataset(VOCDetection):
         ground_truth = torch.zeros((self.S, self.S, depth))
         
         for class_index, coords in zip(category_ids,bboxes):
-            name = self.classes[class_index]
+            name = self.classes[int(class_index)]
 
             # Calculate the position of center of bounding box
             x_min, y_min, x_max, y_max = coords

@@ -1,4 +1,5 @@
 import torch 
+from cslib.utils import glance
 
 __all__ = [
     'msd_align', 
@@ -178,17 +179,29 @@ def restore_tensor_from_blocks(blocks,original_shape):
 #         X = fold(X, paddings.pop())
 #     return X
 
+def calculate_amplitude(X):
+    # Ensure the input is a 2D tensor
+    assert X.dim() >= 2, "Input must be at least a 2D tensor."
+
+    # Perform 2D FFT
+    fftimage = torch.fft.fft2(X,dim=(-2,-1))
+
+    # Compute the amplitude spectrum
+    amplitudespectrum = torch.abs(fftimage)
+
+    # Calculate the mean of the amplitude spectrum
+    sf = amplitudespectrum.mean(dim=(-2,-1))
+
+    return sf
+
 def _detail_layer_fuse(X,Y):
     patchx = divide_tensor_into_blocks(X)
     patchy = divide_tensor_into_blocks(Y)
-    # print(patchx.shape)
-    SF_X = calculate_SF(patchx)
-    # print(SF_X.shape)
-    SF_Y = calculate_SF(patchy)
-    alpha = (SF_X / (SF_X + SF_Y)).unsqueeze(-1).unsqueeze(-1)
-    # print(alpha.shape)
+    amp_X = calculate_amplitude(patchx)
+    amp_Y = calculate_amplitude(patchy)
+    alpha = (amp_X / (amp_X + amp_Y)).unsqueeze(-1).unsqueeze(-1)
     patchf = alpha * patchx + (1 - alpha) * patchy
-    # print(patchf.shape)
+    # breakpoint()
     # return restore_tensor_from_blocks(patchf, X.shape).mean(dim=1,keepdim=True)
     return restore_tensor_from_blocks(patchf, X.shape)
 
